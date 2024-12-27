@@ -1,5 +1,8 @@
 package com.bulgat.codesandbox.model.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum CompileCodeStatusEnum {
     COMPILE_ERROR(1,"Compile Error"),
     COMPILE_SUCCESS(0,"Compile Success");
@@ -25,11 +28,4 @@ public enum CompileCodeStatusEnum {
         return null;
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public String getMessage() {
-        return message;
-    }
 }

@@ -12,7 +12,7 @@ public class CompileMessage {
     /**
      * 编译状态：编译错误、编译正确
      */
-    private CompileCodeStatusEnum compileCodeStatus;
+    private CompileCodeStatusEnum compileCodeStatus=CompileCodeStatusEnum.COMPILE_SUCCESS;
     /**
      * 编译执行信息
      */

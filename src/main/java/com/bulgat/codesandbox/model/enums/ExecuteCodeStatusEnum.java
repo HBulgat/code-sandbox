@@ -1,6 +1,8 @@
 package com.bulgat.codesandbox.model.enums;
 
+import lombok.Getter;
 
+@Getter
 public enum ExecuteCodeStatusEnum {
     EXECUTE_ERROR(1,"Running Error"),
     EXECUTE_SUCCESS(0,"Running Success");

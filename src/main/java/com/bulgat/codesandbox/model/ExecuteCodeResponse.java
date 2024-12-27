@@ -26,7 +26,7 @@ public class ExecuteCodeResponse {
      */
     private CompileMessage compileMessage;
     /**
-     * 编译信息
+     * 运行信息
      */
     private List<ExecuteMessage> executeMessageList;
 }

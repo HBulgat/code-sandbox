@@ -23,20 +23,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+//@Component
 @Slf4j
 public class JavaDockerSandbox extends JavaCodeSandboxTemplate{
-    private static final String JAVA_8_IMAGE_NAME="openjdk:8-alpine";
-    private static final String[] EXECUTE_JAVA_FILE_CMD_ARRAY_WITH_NO_INPUT=new String[]{"/bin/sh", "-c","java -cp /app Main"};
+//    private static final String JAVA_8_IMAGE_NAME="openjdk:8-alpine";
+    private static final String CODE_SANDBOX_IMAGE="codesandbox:latest";
+    private static final String[] EXECUTE_JAVA_FILE_CMD_ARRAY_WITH_NO_INPUT=new String[]{"/bin/sh", "-c","java","-cp","/app","Main"};
     private static final String INPUT_FILE_NAME="input.txt";
     private static final long TIME_OUT=3*1000L;
-    private static final String[] EXECUTE_JAVA_FILE_CMD_ARRAY_WITH_INPUT=new String[]{"/bin/sh", "-c","java -cp /app Main < /app/"+INPUT_FILE_NAME};
+    private static final String[] EXECUTE_JAVA_FILE_CMD_ARRAY_WITH_INPUT=new String[]{"/bin/sh", "-c","java","-cp","/app","Main","<","/app/"+INPUT_FILE_NAME};
     @Override
     protected List<ExecuteMessage> runFile(File userCodeFile, List<String> inputList) {
         String userCodeParentPath= userCodeFile.getParentFile().getAbsolutePath();
         DockerClient dockerClient= DockerClientBuilder.getInstance().build();
         //创建容器
-        CreateContainerCmd containerCmd=dockerClient.createContainerCmd(JAVA_8_IMAGE_NAME);
+//        CreateContainerCmd containerCmd=dockerClient.createContainerCmd(JAVA_8_IMAGE_NAME);
+        CreateContainerCmd containerCmd=dockerClient.createContainerCmd(CODE_SANDBOX_IMAGE);
         HostConfig hostConfig=new HostConfig();
         hostConfig.withMemory(100*1000*1000L);
         hostConfig.withMemorySwap(0L);
@@ -65,15 +67,22 @@ public class JavaDockerSandbox extends JavaCodeSandboxTemplate{
         }else{//有输入
             cmdArray=EXECUTE_JAVA_FILE_CMD_ARRAY_WITH_INPUT;
         }
+        ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+                .withCmd(cmdArray)
+                .withAttachStderr(true)
+                .withAttachStdin(true)
+                .withAttachStdout(true)
+                .exec();
+        String execId = execCreateCmdResponse.getId();
         for (String input : inputList) {
             ExecuteMessage executeMessage = new ExecuteMessage();
-            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
-                    .withCmd(cmdArray)
-                    .withAttachStderr(true)
-                    .withAttachStdin(true)
-                    .withAttachStdout(true)
-                    .exec();
-            String execId = execCreateCmdResponse.getId();
+//            ExecCreateCmdResponse execCreateCmdResponse = dockerClient.execCreateCmd(containerId)
+//                    .withCmd(cmdArray)
+//                    .withAttachStderr(true)
+//                    .withAttachStdin(true)
+//                    .withAttachStdout(true)
+//                    .exec();
+//            String execId = execCreateCmdResponse.getId();
             if (input!=null&&!input.isEmpty()){
                 //保存输入到文件
                 saveInputToFile(input,userCodeParentPath);
@@ -105,7 +114,7 @@ public class JavaDockerSandbox extends JavaCodeSandboxTemplate{
             ResultCallback<Statistics> statisticsResultCallback = statsCmd.exec(new ResultCallback<Statistics>() {
                 @Override
                 public void onNext(Statistics statistics) {
-                    System.out.println("内存占用：" + statistics.getMemoryStats().getUsage());
+                    System.out.println("内存占用：" + statistics.getMemoryStats().getUsage()+"bytes");
                     memory[0] =Math.max(statistics.getMemoryStats().getUsage(), memory[0]);
                 }
 
@@ -153,6 +162,9 @@ public class JavaDockerSandbox extends JavaCodeSandboxTemplate{
                 throw new BusinessException(ErrorCode.SYSTEM_ERROR);
             }
         }
+        //关闭并删除容器
+        dockerClient.stopContainerCmd(containerId).exec();
+        dockerClient.removeContainerCmd(containerId).exec();
         return executeMessageList;
     }
 
