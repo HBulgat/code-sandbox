@@ -6,7 +6,6 @@ import com.bulgat.codesandbox.codesandbox.impl.DockerSandbox;
 import com.bulgat.codesandbox.model.ExecuteCodeRequest;
 import com.bulgat.codesandbox.model.ExecuteCodeResponse;
 import com.bulgat.codesandbox.model.enums.LanguageCmdEnum;
-import lombok.With;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -23,13 +22,10 @@ class DockerSandboxTest {
     void testJava() throws InterruptedException {
         String code = ResourceUtil.readStr("testCode/Main.java", StandardCharsets.UTF_8);
         ExecuteCodeRequest executeCodeRequest=new ExecuteCodeRequest();
-//        executeCodeRequest.setInputList(ListUtil.toList("1 2","3 4"));
         executeCodeRequest.setCode(code);
         executeCodeRequest.setLanguage(LanguageCmdEnum.JAVA.getLanguage());
-
         ExecuteCodeResponse executeCodeResponse = dockerSandbox.executeCode(executeCodeRequest);
         System.out.println(executeCodeResponse);
-        Thread.sleep(5000L);
     }
 
     @Test

@@ -1,6 +1,5 @@
 package com.bulgat.codesandbox.model.enums;
 
-import com.bulgat.codesandbox.common.Constant;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -11,13 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 @Getter
 public enum LanguageCmdEnum {
 
-    JAVA("java","Main.java",new String[]{"javac","-encoding","utf-8","Main.java"},new String[]{"/bin/sh", "-c","java -Dfile.encoding=UTF-8 -cp /box Main"},new String[]{"/bin/sh", "-c","java -Dfile.encoding=UTF-8 -cp /box Main <"}),
+    JAVA("java","Main.java",new String[]{"/bin/sh", "-c","javac -encoding utf-8 Main.java"},new String[]{"/bin/sh", "-c","java -Dfile.encoding=UTF-8 -cp /box Main"},new String[]{"/bin/sh", "-c","java -Dfile.encoding=UTF-8 -cp /box Main <"}),
     CPP("cpp", "main.cpp", new String[]{"g++", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-o", "main", "main.cpp"}, new String[]{"/bin/sh", "-c", "./main"},new String[]{"/bin/sh", "-c","./main <"}),
     C("c", "main.c", new String[]{"gcc", "-finput-charset=UTF-8", "-fexec-charset=UTF-8", "-o", "main", "main.c"}, new String[]{"/bin/sh", "-c","./main"}, new String[]{"/bin/sh", "-c","./main <"}),
     PYTHON3("python", "main.py", null, new String[]{"/bin/sh", "-c","python3 main.py"},new String[]{"/bin/sh", "-c","python3 main.py <"}),
     JAVASCRIPT("javascript", "main.js", null, new String[]{"/bin/sh", "-c","node main.js"},new String[]{"/bin/sh", "-c","node main.js <"}),
     TYPESCRIPT("typescript", "main.ts", null, new String[]{"/bin/sh", "-c","node main.ts"}, new String[]{"/bin/sh", "-c","node main.ts <"}),
-//    GO("go", "main.go", null, new String[]{"/bin/sh", "-c","go run main.go"}, new String[]{"/bin/sh", "-c","go run main.go <"});
+
     ;
     private final String language;
 
