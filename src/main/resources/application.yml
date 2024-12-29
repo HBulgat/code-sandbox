@@ -9,7 +9,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/code_sandbox_auth
     username: root
-    password: Hxy12230828.
+    password: 3104261648
 
 server:
   port: 8077

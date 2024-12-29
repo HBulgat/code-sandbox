@@ -32,7 +32,7 @@ public class ExecuteCodeController {
 
     @PostMapping("/execute_code")
     public BaseResponse<ExecuteCodeResponse> executeCode(@RequestBody ExecuteCodeRequest executeCodeRequest, HttpServletRequest request){
-//        doAuthCheck(request);
+        doAuthCheck(request);
         if (executeCodeRequest==null){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -49,7 +49,7 @@ public class ExecuteCodeController {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
         }
         QueryWrapper<Auth> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("accessKey",accessKey);
+        queryWrapper.eq(Constant.AUTH_HEADER_ACCESS_KEY,accessKey);
         Auth auth = authService.getOne(queryWrapper);
         if (auth==null||!auth.getSecretKey().equals(secretKey)){
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
