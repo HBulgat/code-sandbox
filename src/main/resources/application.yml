@@ -9,7 +9,8 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/code_sandbox_auth
     username: root
-    password: 3104261648
+#    password: 3104261648
+    password: Hxy12230828.
 
 server:
   port: 8077
@@ -37,3 +38,8 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.bulgat.codesandbox.controller
+
+# api签名认证配置
+api-security:
+  nonce:
+    expireTime: 120000

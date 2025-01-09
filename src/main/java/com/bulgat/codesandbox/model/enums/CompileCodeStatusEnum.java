@@ -1,14 +1,22 @@
 package com.bulgat.codesandbox.model.enums;
 
 import lombok.Getter;
-
+import static com.bulgat.codesandbox.constant.CmdExecuteStatusConstant.*;
 @Getter
 public enum CompileCodeStatusEnum {
-    COMPILE_ERROR(1,"Compile Error"),
-    COMPILE_SUCCESS(0,"Compile Success");
+    COMPILE_NO_NEEDED(SUCCESS,4,"Compile No Needed"),
+    SYSTEM_ERROR(FAILED,3,"System Error"),
+    COMPILE_TIME_OUT(FAILED,2,"Compile Time Out"),
+    COMPILE_ERROR(FAILED,1,"Compile Error"),
+    COMPILE_SUCCESS(SUCCESS,0,"Compile Success");
+    /**
+     * 1 成功，0 失败
+     */
+    private final int success;
     private final int code;
     private final String message;
-    CompileCodeStatusEnum(int code,String message){
+    CompileCodeStatusEnum(int success,int code,String message){
+        this.success=success;
         this.message=message;
         this.code=code;
     }
@@ -27,5 +35,4 @@ public enum CompileCodeStatusEnum {
         }
         return null;
     }
-
 }

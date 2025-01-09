@@ -1,14 +1,19 @@
 package com.bulgat.codesandbox.model.enums;
 
 import lombok.Getter;
-
+import static com.bulgat.codesandbox.constant.CmdExecuteStatusConstant.*;
 @Getter
 public enum ExecuteCodeStatusEnum {
-    EXECUTE_ERROR(1,"Running Error"),
-    EXECUTE_SUCCESS(0,"Running Success");
+    EXECUTE_TIME_OUT(FAILED,4,"Execute Time Out"),
+    SYSTEM_ERROR(FAILED,3,"System Error"),
+    EXECUTE_ERROR(FAILED,1,"Execute Error"),
+    EXECUTE_OUTPUT_EXCEEDED(FAILED,2,"Execute Output Exceeded"),
+    EXECUTE_SUCCESS(SUCCESS,0,"Execute Success");
+    private final int success;
     private final int code;
     private final String message;
-    ExecuteCodeStatusEnum(int code,String message){
+    ExecuteCodeStatusEnum(int success,int code,String message){
+        this.success=success;
         this.message=message;
         this.code=code;
     }

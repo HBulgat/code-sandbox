@@ -30,7 +30,6 @@ public class ContainerPoolExecutor {
     private Integer waitQueueSize=2000;
     private Integer keepAliveTime=5;
     private TimeUnit timeUnit=TimeUnit.SECONDS;
-
     private BlockingDeque<ContainerInfo> containerPool;
     private AtomicInteger blockingThreadCount;
     private AtomicInteger expandCount;
@@ -127,19 +126,18 @@ public class ContainerPoolExecutor {
             if (containerInfo==null){
                 ExecuteCodeResponse executeCodeResponse=new ExecuteCodeResponse();
                 CompileMessage compileMessage=new CompileMessage();
-                compileMessage.setCompileCodeStatus(CompileCodeStatusEnum.COMPILE_ERROR);
-                compileMessage.setMessage("System Error");
+                compileMessage.setCompileCodeStatus(CompileCodeStatusEnum.SYSTEM_ERROR);
                 executeCodeResponse.setCompileMessage(compileMessage);
                 return executeCodeResponse;
             }
             ExecuteCodeResponse executeCodeResponse=function.apply(containerInfo);
-            log.info("executeCodeResponse= "+executeCodeResponse);
             return executeCodeResponse;
         } catch (InterruptedException e){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR);
         } finally {
             if (containerInfo!=null){
                 ContainerInfo finalContainerInfo=containerInfo;
+                //清理容器内的文件
                 dockerDao.execCmd(containerInfo.getContainerId(),new String[]{"rm","-rf","/box"});
                 CompletableFuture.runAsync(()->{
                     try{

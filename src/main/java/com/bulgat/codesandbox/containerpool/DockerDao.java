@@ -3,7 +3,7 @@ package com.bulgat.codesandbox.containerpool;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
-import com.bulgat.codesandbox.common.Constant;
+import com.bulgat.codesandbox.constant.ApiAuthConstant;
 import com.bulgat.codesandbox.model.CompileMessage;
 import com.bulgat.codesandbox.model.ExecuteMessage;
 import com.bulgat.codesandbox.model.enums.CompileCodeStatusEnum;
@@ -36,11 +36,11 @@ public class DockerDao {
     private long memoryLimit = 60*1024*1024L;
     private long memorySwap=0;
     private long cpuCount=1;
-    private long executeTimeoutLimit=5;
+    private long executeTimeoutLimit=10;
     private TimeUnit executeTimeUnit=TimeUnit.SECONDS;
     private long compileTimeoutLimit=3;
     private TimeUnit compileTimeUnit=TimeUnit.SECONDS;
-
+    private long outputLengthLimit=128*1024L;
 
     public CompileMessage compileFile(String[] compileCmd, String containerId) throws InterruptedException {
         CompileMessage compileMessage=new CompileMessage();
@@ -68,14 +68,13 @@ public class DockerDao {
         StopWatch stopWatch=new StopWatch();
         stopWatch.start();
         DOCKER_CLIENT.execStartCmd(execId).exec(frameAdapter).awaitCompletion(
-//                compileTimeoutLimit,compileTimeUnit
+                compileTimeoutLimit,compileTimeUnit
         );
         stopWatch.stop();
         long compileTime=stopWatch.getLastTaskTimeMillis();
-//        if (compileTime>=compileTimeUnit.toMillis(compileTimeoutLimit)){
-//            compileMessage.setCompileCodeStatus(CompileCodeStatusEnum.COMPILE_ERROR);
-//            resultStringBuffer.append("编译超时");
-//        }
+        if (compileTime>=compileTimeUnit.toMillis(compileTimeoutLimit)){
+            compileMessage.setCompileCodeStatus(CompileCodeStatusEnum.COMPILE_TIME_OUT);
+        }
         compileMessage.setMessage(resultStringBuffer.toString());
         return compileMessage;
     }
@@ -96,7 +95,16 @@ public class DockerDao {
         FileUtil.writeString(input, inputFilePath, StandardCharsets.UTF_8);
     }
 
+    /**
+     * 执行代码
+     * @param userCodeFile
+     * @param languageCmdEnum
+     * @param inputList
+     * @param containerId
+     * @return
+     */
     public List<ExecuteMessage> executeFile(File userCodeFile, LanguageCmdEnum languageCmdEnum, List<String> inputList, String containerId){
+        //1. 获取运行命令
         String[] runCmdPart= languageCmdEnum.getRunCmdWithInput();
         if (CollectionUtil.isEmpty(inputList)){
             runCmdPart= languageCmdEnum.getRunCmdWithNoInput();
@@ -106,6 +114,7 @@ public class DockerDao {
 
         List<ExecuteMessage> executeMessageList=new ArrayList<>();
         int inputCnt=0;
+        //遍历输入列表
         for (String input : inputList) {
             inputCnt++;
             String[] runCmd=runCmdPart.clone();
@@ -113,8 +122,9 @@ public class DockerDao {
             String inputFileName=null;
             if (StrUtil.isNotBlank(input)){
                 inputFileName="input"+inputCnt+".txt";
+                //输入写入文件
                 saveInputToFile(input, userCodeFile.getAbsolutePath(), inputFileName);
-                runCmd[runCmd.length-1]=runCmd[runCmd.length-1]+" "+ Constant.REMOTE_PARENT_PATH+File.separator+inputFileName;
+                runCmd[runCmd.length-1]=runCmd[runCmd.length-1]+" "+ ApiAuthConstant.REMOTE_PARENT_PATH+File.separator+inputFileName;
             }
             ExecCreateCmdResponse execCreateCmdResponse = DOCKER_CLIENT.execCreateCmd(containerId)
                     .withCmd(runCmd)
@@ -124,11 +134,22 @@ public class DockerDao {
                     .exec();
             String execId = execCreateCmdResponse.getId();
 
-            StringBuilder successMessageStringBuilder=new StringBuilder();
+            //存储输出
+            //正常输出
+            StringBuilder commonMessageStringBuilder=new StringBuilder();
+            //异常输出
             StringBuilder errorMessageStringBuilder=new StringBuilder();
+            //是否输出导致OOM
+            final boolean[] isOOM = {false};
             ResultCallback.Adapter<Frame> frameAdapter = new ResultCallback.Adapter<Frame>() {
                 @Override
                 public void onNext(Frame frame) {
+                if (errorMessageStringBuilder.length()+commonMessageStringBuilder.length()>=outputLengthLimit){
+                    if (!isOOM[0]){
+                        isOOM[0] =true;
+                        executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_OUTPUT_EXCEEDED);
+                    }
+                }else{
                     StreamType streamType = frame.getStreamType();
                     if(StreamType.STDERR.equals(streamType)){
                         if(executeMessage.getExecuteCodeStatus()== ExecuteCodeStatusEnum.EXECUTE_SUCCESS){
@@ -136,9 +157,10 @@ public class DockerDao {
                         }
                         errorMessageStringBuilder.append(new String(frame.getPayload()));
                     }else{
-                        successMessageStringBuilder.append(new String(frame.getPayload()));
+                        commonMessageStringBuilder.append(new String(frame.getPayload()));
                     }
-                    super.onNext(frame);
+                }
+                super.onNext(frame);
                 }
             };
             StatsCmd statsCmd = DOCKER_CLIENT.statsCmd(containerId);
@@ -155,7 +177,6 @@ public class DockerDao {
 
                 @Override
                 public void onNext(Statistics statistics) {
-//                    System.out.println("内存占用：" + statistics.getMemoryStats().getUsage()+"bytes");
                     memory[0] =Math.max(statistics.getMemoryStats().getUsage(), memory[0]);
                 }
 
@@ -168,32 +189,35 @@ public class DockerDao {
                 public void onComplete() {
                 }
             };
+
+            //时间监控
             StopWatch stopWatch=new StopWatch();
             stopWatch.start();
             ExecStartCmd execStartCmd = DOCKER_CLIENT.execStartCmd(execId);
             statsCmd.exec(statisticsResultCallback);
+            statsCmd.withContainerId(containerId);
+            statsCmd.withNoStream(true);
             try {
                 execStartCmd.exec(frameAdapter).awaitCompletion(
-//                        executeTimeoutLimit,executeTimeUnit
+                        executeTimeoutLimit,executeTimeUnit
                 );
             } catch (InterruptedException e) {
-                log.error("运行出错，"+e.getMessage());
-                executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_ERROR);
-                errorMessageStringBuilder.append("运行出错");
+                log.error("execute code failed , message = {}",e.getMessage());
+                //执行失败，说明应该是系统错误
+                executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.SYSTEM_ERROR);
             }
             stopWatch.stop();
+            //运行时间获取
             long time=stopWatch.getLastTaskTimeMillis();
-//            if (time>=executeTimeUnit.toMillis(executeTimeoutLimit)){
-//                errorMessageStringBuilder.append("运行超时");
-//            }
+            if (time>=executeTimeUnit.toMillis(executeTimeoutLimit)){
+                executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_TIME_OUT);
+            }
             executeMessage.setTime(time);
             executeMessage.setMemory(memory[0]);
 
             executeMessage.setMessage(errorMessageStringBuilder.toString());
-            if (!errorMessageStringBuilder.toString().isEmpty()){
-                executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_ERROR);
-            }
-            executeMessage.setOutput(successMessageStringBuilder.toString());
+
+            executeMessage.setOutput(commonMessageStringBuilder.toString());
             executeMessageList.add(executeMessage);
             //删除输入文件
             if (inputFileName!=null){
@@ -213,7 +237,7 @@ public class DockerDao {
         hostConfig.withMemory(memoryLimit)
                 .withMemorySwap(memorySwap)
                 .withCpuCount(cpuCount)
-                .setBinds(new Bind(userCodePathName,new Volume(Constant.REMOTE_PARENT_PATH)));
+                .setBinds(new Bind(userCodePathName,new Volume(ApiAuthConstant.REMOTE_PARENT_PATH)));
         CreateContainerResponse createContainerResponse = containerCmd.withHostConfig(hostConfig)
                 .withNetworkDisabled(true)
                 .withAttachStdout(true)

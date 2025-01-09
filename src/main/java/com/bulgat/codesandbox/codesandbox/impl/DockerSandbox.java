@@ -22,7 +22,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
+import static com.bulgat.codesandbox.constant.CmdExecuteStatusConstant.*;
 @Slf4j
 @Data
 @Configuration
@@ -56,14 +56,16 @@ public class DockerSandbox implements CodeSandbox {
                 FileUtil.writeString(code,userCodePathName+File.separator+languageCmdEnum.getSaveFileName(),StandardCharsets.UTF_8);
 
                 String[] compileCmd= languageCmdEnum.getCompileCmd();
-                CompileMessage compileMessage=new CompileMessage();
-                executeCodeResponse.setCompileMessage(compileMessage);
                 if (compileCmd!=null){
-                    compileMessage=dockerDao.compileFile(compileCmd,containerId);
+                    CompileMessage compileMessage=dockerDao.compileFile(compileCmd,containerId);
                     executeCodeResponse.setCompileMessage(compileMessage);
-                    if (compileMessage.getCompileCodeStatus()==CompileCodeStatusEnum.COMPILE_ERROR){
+                    if (compileMessage.getCompileCodeStatus().getSuccess()==FAILED){
                         return executeCodeResponse;
                     }
+                }else{
+                    CompileMessage compileMessage=new CompileMessage();
+                    compileMessage.setCompileCodeStatus(CompileCodeStatusEnum.COMPILE_NO_NEEDED);
+                    executeCodeResponse.setCompileMessage(compileMessage);
                 }
                 List<ExecuteMessage> executeMessageList = dockerDao.executeFile(new File(userCodePathName), languageCmdEnum, inputList, containerId);
                 executeCodeResponse.setExecuteMessageList(executeMessageList);
