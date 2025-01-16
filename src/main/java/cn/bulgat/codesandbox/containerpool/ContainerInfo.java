@@ -14,5 +14,4 @@ public class ContainerInfo {
     private String containerId;
     private String userCodePathName;
     private long lastActivityTime;
-//    private int errorCount=0;
 }

@@ -13,7 +13,6 @@ import cn.bulgat.codesandbox.mapper.AuthMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
