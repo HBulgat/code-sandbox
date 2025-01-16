@@ -1,21 +1,8 @@
 spring:
+  profiles:
+    active: local
   application:
     name: code-sandbox
-#  # 支持 swagger3
-#  mvc:
-#    pathmatch:
-#      matching-strategy: ant_path_matcher
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/code_sandbox_auth
-    username: root
-    password: 3104261648
-
-server:
-  port: 8077
-  address: 0.0.0.0
-  servlet:
-    context-path: /api
 
 mybatis-plus:
   configuration:
@@ -26,6 +13,7 @@ mybatis-plus:
       logic-delete-field: isDelete # 全局逻辑删除的实体字段名
       logic-delete-value: 1 # 逻辑已删除值（默认为 1）
       logic-not-delete-value: 0 # 逻辑未删除值（默认为 0）
+
 # 接口文档配置
 knife4j:
   enable: true
@@ -36,4 +24,5 @@ knife4j:
       default:
         api-rule: package
         api-rule-resources:
-          - com.bulgat.codesandbox.controller
+          - cn.bulgat.codesandbox.controller
+

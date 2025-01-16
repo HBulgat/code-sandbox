@@ -9,14 +9,20 @@
         <version>2.7.2</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.bulgat</groupId>
+    <groupId>cn.bulgat</groupId>
     <artifactId>code-sandbox</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>code-sandbox-starter</name>
+    <version>0.0.7-SNAPSHOT</version>
+    <name>code-sandbox</name>
     <properties>
         <java.version>1.8</java.version>
     </properties>
     <dependencies>
+        <!--caffeine缓存-->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.5.5</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -91,6 +97,10 @@
             <artifactId>knife4j-openapi2-spring-boot-starter</artifactId>
             <version>4.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -109,7 +119,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>2.7.6</version>
                 <configuration>
-                    <mainClass>com.bulgat.codesandbox.CodeSandboxApplication</mainClass>
+                    <mainClass>cn.bulgat.codesandbox.CodeSandboxApplication</mainClass>
                     <!--                    <skip>true</skip>-->
                 </configuration>
                 <executions>
