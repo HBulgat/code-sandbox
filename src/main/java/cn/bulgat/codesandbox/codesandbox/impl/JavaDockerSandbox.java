@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.bulgat.codesandbox.common.ErrorCode;
 import cn.bulgat.codesandbox.exception.BusinessException;
-import cn.bulgat.codesandbox.model.ExecuteMessage;
+import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteMessage;
 import cn.bulgat.codesandbox.model.enums.ExecuteCodeStatusEnum;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.async.ResultCallback;
@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 //@Component
 @Slf4j
 public class JavaDockerSandbox extends JavaCodeSandboxTemplate{

@@ -1,6 +1,7 @@
-package cn.bulgat.codesandbox.model.vo;
+package cn.bulgat.codesandbox.model.vo.auth;
 
 import cn.bulgat.codesandbox.model.entity.Auth;
+import cn.bulgat.codesandbox.model.vo.user.UserVO;
 import lombok.Data;
 import org.springframework.beans.BeanUtils;
 

@@ -18,7 +18,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * 权限校验 AOP
+ * 用户身份权限校验 AOP
  *
  */
 @Aspect

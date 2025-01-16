@@ -1,6 +1,6 @@
 package cn.bulgat.codesandbox.utils;
 
-import cn.bulgat.codesandbox.model.CompileMessage;
+import cn.bulgat.codesandbox.model.vo.codesandbox.CompileMessage;
 import cn.bulgat.codesandbox.model.enums.CompileCodeStatusEnum;
 
 import java.io.BufferedReader;

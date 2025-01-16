@@ -5,7 +5,7 @@ import cn.bulgat.codesandbox.config.ApiSecurityConfig;
 import cn.bulgat.codesandbox.exception.ThrowUtils;
 import cn.bulgat.codesandbox.model.entity.Auth;
 import cn.bulgat.codesandbox.model.entity.User;
-import cn.bulgat.codesandbox.model.vo.AuthVO;
+import cn.bulgat.codesandbox.model.vo.auth.AuthVO;
 import cn.bulgat.codesandbox.service.UserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import cn.bulgat.codesandbox.service.AuthService;

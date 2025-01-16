@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 权限校验 AOP
+ * api签名认证权限校验 AOP
  *
  */
 @Aspect

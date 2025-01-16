@@ -1,7 +1,7 @@
 package cn.bulgat.codesandbox.service;
 
 import cn.bulgat.codesandbox.model.entity.Auth;
-import cn.bulgat.codesandbox.model.vo.AuthVO;
+import cn.bulgat.codesandbox.model.vo.auth.AuthVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import javax.servlet.http.HttpServletRequest;

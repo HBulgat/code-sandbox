@@ -4,30 +4,11 @@
 docker build . -t codesandbox:latest
 ```
 
-## 一个执行代码的接口应该接收与返回哪些信息
-1. 接收：
-- code
-- 语言
-- input
+## docker快速删除所有容器
+```shell
+sudo docker rm $(docker ps -aq)
+```
+```shell
+sudo docker stop $(docker ps -q) & docker rm $(docker ps -aq)
+```
 
-2. 返回
-- 输出
-- 占用内存
-- 执行时间
-- 执行信息：
-  - 编译错误
-  - 执行中出错
-  - 正常执行
-
-## todo
-细化返回信息
-- 编译
-  增加编译状态码：
-  - 编译正常
-  - 编译超时
-  - 编译错误
-    - 为了因为warning导致程序错误的以为编译错误，要开启忽略编译警告
-- 运行
-  增加运行状态码
-  尽量为OJ系统设计
-  - 输出溢出

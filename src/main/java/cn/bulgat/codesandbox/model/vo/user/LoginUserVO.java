@@ -1,4 +1,4 @@
-package cn.bulgat.codesandbox.model.vo;
+package cn.bulgat.codesandbox.model.vo.user;
 
 import java.io.Serializable;
 import java.util.Date;

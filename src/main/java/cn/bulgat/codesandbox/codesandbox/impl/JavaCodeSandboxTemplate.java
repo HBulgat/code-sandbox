@@ -4,10 +4,10 @@ import cn.hutool.core.io.FileUtil;
 import cn.bulgat.codesandbox.codesandbox.CodeSandbox;
 import cn.bulgat.codesandbox.common.ErrorCode;
 import cn.bulgat.codesandbox.exception.BusinessException;
-import cn.bulgat.codesandbox.model.CompileMessage;
-import cn.bulgat.codesandbox.model.ExecuteCodeResponse;
-import cn.bulgat.codesandbox.model.ExecuteCodeRequest;
-import cn.bulgat.codesandbox.model.ExecuteMessage;
+import cn.bulgat.codesandbox.model.vo.codesandbox.CompileMessage;
+import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteCodeResponse;
+import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteCodeRequest;
+import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteMessage;
 import cn.bulgat.codesandbox.model.enums.CompileCodeStatusEnum;
 import cn.bulgat.codesandbox.utils.ProcessUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
+@Deprecated
 @Slf4j
 /***
  * 模板方法

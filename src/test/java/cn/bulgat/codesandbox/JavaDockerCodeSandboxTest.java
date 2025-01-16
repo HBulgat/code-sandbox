@@ -4,8 +4,8 @@
 //import cn.hutool.core.io.resource.ResourceUtil;
 //import cn.bulgat.codesandbox.codesandbox.CodeSandbox;
 //import cn.bulgat.codesandbox.codesandbox.impl.JavaDockerSandbox;
-//import cn.bulgat.codesandbox.model.ExecuteCodeRequest;
-//import cn.bulgat.codesandbox.model.ExecuteCodeResponse;
+//import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteCodeRequest;
+//import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteCodeResponse;
 //import org.junit.jupiter.api.Test;
 //
 //import java.nio.charset.StandardCharsets;

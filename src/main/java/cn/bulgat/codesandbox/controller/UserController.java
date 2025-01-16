@@ -5,7 +5,7 @@ import cn.bulgat.codesandbox.exception.BusinessException;
 import cn.bulgat.codesandbox.model.dto.user.UserLoginRequest;
 import cn.bulgat.codesandbox.model.dto.user.UserRegisterRequest;
 import cn.bulgat.codesandbox.model.entity.User;
-import cn.bulgat.codesandbox.model.vo.LoginUserVO;
+import cn.bulgat.codesandbox.model.vo.user.LoginUserVO;
 import cn.bulgat.codesandbox.service.UserService;
 import cn.bulgat.codesandbox.common.BaseResponse;
 import cn.bulgat.codesandbox.common.ErrorCode;

@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 权限校验
+ * 用户身份权限校验
  *
  */
 @Target(ElementType.METHOD)

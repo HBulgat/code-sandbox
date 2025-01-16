@@ -1,9 +1,9 @@
 package cn.bulgat.codesandbox.service;
 
 import cn.bulgat.codesandbox.model.entity.User;
-import cn.bulgat.codesandbox.model.vo.LoginUserVO;
+import cn.bulgat.codesandbox.model.vo.user.LoginUserVO;
 import com.baomidou.mybatisplus.extension.service.IService;
-import cn.bulgat.codesandbox.model.vo.UserVO;
+import cn.bulgat.codesandbox.model.vo.user.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;

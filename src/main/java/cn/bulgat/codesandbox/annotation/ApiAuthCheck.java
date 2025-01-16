@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 权限校验
+ * api签名认证权限校验
  *
  */
 @Target(ElementType.METHOD)
