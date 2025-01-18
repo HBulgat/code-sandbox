@@ -66,7 +66,7 @@ public class ApiAuthInterceptor {
         String nonce=request.getHeader(ApiAuthConstant.AUTH_HEADER_NONCE);
         String timestamp=request.getHeader(ApiAuthConstant.AUTH_HEADER_TIMESTAMP);
         String sign = request.getHeader(ApiAuthConstant.AUTH_HEADER_SIGN);
-        String body=request.getHeader(ApiAuthConstant.AUTH_HEADER_BODY);
+        String params=request.getHeader(ApiAuthConstant.AUTH_HEADER_PARAMS);
         if (StringUtils.isAnyBlank(nonce,timestamp,sign)){
             log.info("Api auth check: params have blank.");
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
@@ -95,7 +95,7 @@ public class ApiAuthInterceptor {
         Map<String,String> headers=new HashMap<>();
         headers.put(ApiAuthConstant.AUTH_HEADER_ACCESS_KEY,accessKey);
         headers.put(ApiAuthConstant.AUTH_HEADER_NONCE, nonce);
-        headers.put(ApiAuthConstant.AUTH_HEADER_BODY,body);
+        headers.put(ApiAuthConstant.AUTH_HEADER_PARAMS,params);
         headers.put(ApiAuthConstant.AUTH_HEADER_TIMESTAMP,timestamp);
         String serverSign = SignUtils.getSign(headers, auth.getSecretKey());
         if (!StringUtils.equals(serverSign,sign)){

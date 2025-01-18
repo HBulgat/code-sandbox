@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class DockerDao {
     private static String CODE_SANDBOX_IMAGE ="codesandbox:latest";
     private static final DockerClient DOCKER_CLIENT = DockerClientBuilder.getInstance().build();
-    private long memoryLimit= 60*1024*1024L;
+    private long memoryLimit= 50*1024*1024L;
     private long memorySwap=0;
     private long cpuCount=1;
     private long executeTimeoutLimit=10;
@@ -49,7 +49,7 @@ public class DockerDao {
     private long compileTimeoutLimit=3;
     private TimeUnit compileTimeUnit=TimeUnit.SECONDS;
     private long outputLengthLimit=128*1024L;
-    private boolean isDebug=false;
+    private Boolean isDebug=false;
 
     public CompileMessage compileFile(String[] compileCmd, String containerId) throws InterruptedException {
         CompileMessage compileMessage=new CompileMessage();
@@ -120,10 +120,12 @@ public class DockerDao {
                     log.error("Write input to file from multipart file failed, message is {}",e.getMessage());
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR);
                 }
+                break;
             case TEXT:
                 FileUtil.writeString(input.getInputText(),inputFilePath,StandardCharsets.UTF_8);
+                break;
             default:
-                log.error("User input type is not supported");
+                log.error("User input type is not supported, user's input type is {}",input.getType());
                 throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
     }

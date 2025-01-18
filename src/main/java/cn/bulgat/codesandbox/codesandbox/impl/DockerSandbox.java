@@ -83,7 +83,9 @@ public class DockerSandbox implements CodeSandbox {
                 log.info("Execute message list size is {}",executeMessageList.size());
                 executeCodeResponse.setExecuteMessageList(executeMessageList);
                 return executeCodeResponse;
-            } catch (Exception e){
+            }catch (BusinessException e){
+                throw e;
+            }catch (Exception e){
                 log.error("System error, "+e.getMessage());
                 ExecuteCodeResponse executeCodeResponse=new ExecuteCodeResponse();
                 CompileMessage compileMessage=new CompileMessage();
