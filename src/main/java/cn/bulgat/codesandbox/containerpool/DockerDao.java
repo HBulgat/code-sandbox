@@ -1,10 +1,14 @@
 package cn.bulgat.codesandbox.containerpool;
 
+import cn.bulgat.codesandbox.common.ErrorCode;
+import cn.bulgat.codesandbox.exception.BusinessException;
+import cn.bulgat.codesandbox.exception.ThrowUtils;
+import cn.bulgat.codesandbox.model.dto.codesandbox.Input;
 import cn.bulgat.codesandbox.model.enums.CompileCodeStatusEnum;
+import cn.bulgat.codesandbox.model.enums.InputTypeEnum;
 import cn.bulgat.codesandbox.model.enums.LanguageCmdEnum;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.bulgat.codesandbox.constant.ApiAuthConstant;
 import cn.bulgat.codesandbox.model.vo.codesandbox.CompileMessage;
 import cn.bulgat.codesandbox.model.vo.codesandbox.ExecuteMessage;
@@ -19,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Closeable;
 import java.io.File;
@@ -26,6 +31,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -96,13 +102,30 @@ public class DockerDao {
      * @param input
      * @param userCodePath
      */
-    private void saveInputToFile(String input,String userCodePath,String inputFileName){
+    private void saveInputToFile(Input input,String userCodePath,String inputFileName,Map<String,MultipartFile> fileMap){
         String inputFilePath=userCodePath+File.separator+ inputFileName;
         if (FileUtil.exist(inputFilePath)){
             log.info("The input case file is existed.");
             FileUtil.del(inputFilePath);
         }
-        FileUtil.writeString(input, inputFilePath, StandardCharsets.UTF_8);
+        InputTypeEnum inputTypeEnum=InputTypeEnum.getEnumByValue(input.getType());
+        switch (inputTypeEnum){
+            case FILE:
+                MultipartFile inputMultipartFile=fileMap.get(input.getInputFileName());
+                ThrowUtils.throwIf(inputMultipartFile==null,ErrorCode.PARAMS_ERROR);
+                try {
+                    byte[] inputMultipartFileBytes = inputMultipartFile.getBytes();
+                    FileUtil.writeBytes(inputMultipartFileBytes,inputFilePath);
+                } catch (IOException e) {
+                    log.error("Write input to file from multipart file failed, message is {}",e.getMessage());
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+                }
+            case TEXT:
+                FileUtil.writeString(input.getInputText(),inputFilePath,StandardCharsets.UTF_8);
+            default:
+                log.error("User input type is not supported");
+                throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
     }
 
     /**
@@ -113,7 +136,9 @@ public class DockerDao {
      * @param containerId
      * @return
      */
-    public List<ExecuteMessage> executeFile(File userCodeFile, LanguageCmdEnum languageCmdEnum, List<String> inputList, String containerId){
+    public List<ExecuteMessage> executeFile(File userCodeFile, LanguageCmdEnum languageCmdEnum,
+                                            List<Input> inputList, String containerId,
+                                            Map<String,MultipartFile> fileMap){
         //1. 获取运行命令
         String[] runCmdPart= languageCmdEnum.getRunCmdWithInput();
         if (CollectionUtil.isEmpty(inputList)){
@@ -125,15 +150,16 @@ public class DockerDao {
         List<ExecuteMessage> executeMessageList=new ArrayList<>();
         int inputCnt=0;
         //遍历输入列表
-        for (String input : inputList) {
+        for (Input input : inputList) {
             inputCnt++;
             String[] runCmd=runCmdPart.clone();
             ExecuteMessage executeMessage=new ExecuteMessage();
             String inputFileName=null;
-            if (StrUtil.isNotBlank(input)){
+            if (input!=null){
+
                 inputFileName="input"+inputCnt+".txt";
                 //输入写入文件
-                saveInputToFile(input, userCodeFile.getAbsolutePath(), inputFileName);
+                saveInputToFile(input, userCodeFile.getAbsolutePath(), inputFileName,fileMap);
                 runCmd[runCmd.length-1]=runCmd[runCmd.length-1]+" "+ ApiAuthConstant.REMOTE_PARENT_PATH+File.separator+inputFileName;
             }
             ExecCreateCmdResponse execCreateCmdResponse = DOCKER_CLIENT.execCreateCmd(containerId)
@@ -206,9 +232,8 @@ public class DockerDao {
             StopWatch stopWatch=new StopWatch();
             stopWatch.start();
             ExecStartCmd execStartCmd = DOCKER_CLIENT.execStartCmd(execId);
+            statsCmd.withContainerId(containerId).withNoStream(true);
             statsCmd.exec(statisticsResultCallback);
-            statsCmd.withContainerId(containerId);
-            statsCmd.withNoStream(true);
             try {
                 if (isDebug){
                     execStartCmd.exec(frameAdapter).awaitCompletion();
@@ -248,6 +273,174 @@ public class DockerDao {
         }
         return executeMessageList;
     }
+
+//    /**
+//     * 执行代码
+//     * @param userCodeFile
+//     * @param languageCmdEnum
+//     * @param inputList
+//     * @param containerId
+//     * @return
+//     */
+//    public List<ExecuteMessage> executeFile(File userCodeFile, LanguageCmdEnum languageCmdEnum, List<Input> inputList, String containerId){
+////        //1. 获取运行命令
+////        String[] runCmdPart= languageCmdEnum.getRunCmdWithInput();
+////        if (CollectionUtil.isEmpty(inputList)){
+////            runCmdPart= languageCmdEnum.getRunCmdWithNoInput();
+////            inputList=new ArrayList<>();
+////            inputList.add(null);
+////        }
+////
+////        List<ExecuteMessage> executeMessageList=new ArrayList<>();
+////        int inputCnt=0;
+////        //遍历输入列表
+////        for (Input input : inputList) {
+////            inputCnt++;
+////            String[] runCmd=runCmdPart.clone();
+////            ExecuteMessage executeMessage=new ExecuteMessage();
+////            String inputFileName=null;
+////            if (input!=null){
+////                inputFileName="input"+inputCnt+".txt";
+////                InputTypeEnum inputTypeEnum=InputTypeEnum.getEnumByValue(input.getType());
+////                switch (inputTypeEnum){
+////                    case TEXT:
+////                        saveInputToFile(input.getInputText(), userCodeFile.getAbsolutePath(), inputFileName);
+////                        break;
+////                    case FILE:
+////                        String originInputFileName = input.getInputFileName();
+////                        MultipartFile multipartFile=fileMap.get(originInputFileName);
+//////                        MultipartFile multipartFile= input.getInputFile();
+////                        if (multipartFile==null){
+////                            executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.SYSTEM_ERROR);
+////                            executeMessageList.add(executeMessage);
+////                            continue;
+////                        }
+////                        byte[] multipartFileBytes = new byte[0];
+////                        try {
+////                            multipartFileBytes = multipartFile.getBytes();
+////                        } catch (IOException e) {
+////                            executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.SYSTEM_ERROR);
+////                            executeMessageList.add(executeMessage);
+////                            continue;
+////                        }
+////                        FileUtil.writeBytes(multipartFileBytes,userCodeFile.getAbsolutePath()+File.separator+inputFileName);
+////                }
+////                //输入写入文件
+////                //saveInputToFile(input, userCodeFile.getAbsolutePath(), inputFileName);
+////                runCmd[runCmd.length-1]=runCmd[runCmd.length-1]+" "+ ApiAuthConstant.REMOTE_PARENT_PATH+File.separator+inputFileName;
+////            }
+////            ExecCreateCmdResponse execCreateCmdResponse = DOCKER_CLIENT.execCreateCmd(containerId)
+////                    .withCmd(runCmd)
+////                    .withAttachStderr(true)
+////                    .withAttachStdout(true)
+////                    .withAttachStdin(true)
+////                    .exec();
+////            String execId = execCreateCmdResponse.getId();
+////
+////            //存储输出
+////            //正常输出
+////            StringBuilder commonMessageStringBuilder=new StringBuilder();
+////            //异常输出
+////            StringBuilder errorMessageStringBuilder=new StringBuilder();
+////            //是否输出导致OOM
+////            final boolean[] isOOM = {false};
+////            ResultCallback.Adapter<Frame> frameAdapter = new ResultCallback.Adapter<Frame>() {
+////                @Override
+////                public void onNext(Frame frame) {
+////                    if (errorMessageStringBuilder.length()+commonMessageStringBuilder.length()>=outputLengthLimit){
+////                        if (!isOOM[0]){
+////                            isOOM[0] =true;
+////                            log.error("Out of memory!");
+////                            executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_OUTPUT_EXCEEDED);
+////                        }
+////                    }else{
+////                        StreamType streamType = frame.getStreamType();
+////                        if(StreamType.STDERR.equals(streamType)){
+////                            if(executeMessage.getExecuteCodeStatus()== ExecuteCodeStatusEnum.EXECUTE_SUCCESS){
+////                                executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_ERROR);
+////                            }
+////                            log.info("Execute process has error happening");
+////                            errorMessageStringBuilder.append(new String(frame.getPayload()));
+////                        }else{
+////                            commonMessageStringBuilder.append(new String(frame.getPayload()));
+////                        }
+////                    }
+////                    super.onNext(frame);
+////                }
+////            };
+////            StatsCmd statsCmd = DOCKER_CLIENT.statsCmd(containerId);
+////            final long[] memory = {0L};
+////            ResultCallback<Statistics> statisticsResultCallback = new ResultCallback<Statistics>() {
+////                @Override
+////                public void close() throws IOException {
+////                }
+////
+////                @Override
+////                public void onStart(Closeable closeable) {
+////
+////                }
+////
+////                @Override
+////                public void onNext(Statistics statistics) {
+////                    memory[0] =Math.max(statistics.getMemoryStats().getUsage(), memory[0]);
+////                }
+////
+////                @Override
+////                public void onError(Throwable throwable) {
+////
+////                }
+////
+////                @Override
+////                public void onComplete() {
+////                }
+////            };
+////
+////            //时间监控
+////            StopWatch stopWatch=new StopWatch();
+////            stopWatch.start();
+////            ExecStartCmd execStartCmd = DOCKER_CLIENT.execStartCmd(execId);
+////            statsCmd.withContainerId(containerId).withNoStream(true);
+////            statsCmd.exec(statisticsResultCallback);
+////            try {
+////                if (isDebug){
+////                    execStartCmd.exec(frameAdapter).awaitCompletion();
+////                }else{
+////                    execStartCmd.exec(frameAdapter).awaitCompletion(
+////                            executeTimeoutLimit,executeTimeUnit
+////                    );
+////                }
+////            } catch (InterruptedException e) {
+////                log.error("Execute code failed , message = {}",e.getMessage());
+////                //执行失败，说明应该是系统错误
+////                executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.SYSTEM_ERROR);
+////            }
+////            stopWatch.stop();
+////            //运行时间获取
+////            long executeTime=stopWatch.getLastTaskTimeMillis();
+////            if (!isDebug){
+////                if (executeTime>=executeTimeUnit.toMillis(executeTimeoutLimit)){
+////                    log.info("Execute time out, the time is {} ms",executeTime);
+////                    executeMessage.setExecuteCodeStatus(ExecuteCodeStatusEnum.EXECUTE_TIME_OUT);
+////                }
+////            }
+////            executeMessage.setTime(executeTime);
+////            executeMessage.setMemory(memory[0]);
+////
+////            executeMessage.setMessage(errorMessageStringBuilder.toString());
+////
+////            executeMessage.setOutput(commonMessageStringBuilder.toString());
+////            executeMessageList.add(executeMessage);
+////            //删除输入文件
+////            if (inputFileName!=null){
+////                boolean del = FileUtil.del(userCodeFile.getAbsolutePath() + File.separator + inputFileName);
+////                if (!del){
+////                    log.error("The input file delete failed");
+////                }
+////            }
+////        }
+////        return executeMessageList;
+//        return null;
+//    }
 
 
     public ContainerInfo startContainer(String userCodePathName) {

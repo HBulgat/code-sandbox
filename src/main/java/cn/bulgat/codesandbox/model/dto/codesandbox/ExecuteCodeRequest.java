@@ -1,10 +1,11 @@
-package cn.bulgat.codesandbox.model.vo.codesandbox;
+package cn.bulgat.codesandbox.model.dto.codesandbox;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
@@ -18,8 +19,8 @@ import java.util.List;
  * - 语言
  * - 输入
  */
-public class ExecuteCodeRequest {
-    private List<String> inputList;
+public class ExecuteCodeRequest implements Serializable {
+    private List<Input> inputList;
     private String code;
     private String language;
 }
